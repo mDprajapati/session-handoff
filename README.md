@@ -160,48 +160,6 @@ line), so you never lose your handoff entirely.
 No other configuration is required. After installing, restart Claude Code so the
 hooks activate.
 
-### Privacy & compliance
-
-The transcript can contain client data, secrets, or PII. By default the plugin
-**redacts obvious secrets** (API keys, tokens, passwords, private keys, bearer
-tokens) before any text is sent to the API or written to disk. For sensitive repos
-you can also keep everything on the machine:
-
-```bash
-export SESSION_HANDOFF_LOCAL_ONLY=1   # never call the API; build the handoff locally
-```
-
-Redaction is a best-effort safety net, not a guarantee — review handoffs before
-sharing them.
-
-### Configuration
-
-Everything has sane defaults. Override via environment variables, or commit a
-`.session-handoff.json` file in the project root for per-repo policy (env vars win
-over the file):
-
-| Env var | `.session-handoff.json` key | Default | Purpose |
-|---------|------------------------------|---------|---------|
-| `SESSION_HANDOFF_LOCAL_ONLY` | `local_only` | `false` | Skip the API entirely (privacy) |
-| `SESSION_HANDOFF_REDACT` | `redact_secrets` | `true` | Redact secrets before send/write |
-| `SESSION_HANDOFF_MODEL` | `model` | `claude-haiku-4-5-20251001` | Summarizer model id |
-| `SESSION_HANDOFF_MAX_TURNS` | `max_turns` | `40` | Recent turns fed to the summarizer |
-| `SESSION_HANDOFF_MAX_TOKENS` | `max_tokens` | `1200` | Summary output token budget |
-| `SESSION_HANDOFF_API_TIMEOUT` | `api_timeout` | `20` | API timeout (seconds) before local fallback |
-| `SESSION_HANDOFF_API_ATTEMPTS` | `api_attempts` | `2` | API attempts before falling back |
-| `SESSION_HANDOFF_STALE_HOURS` | `stale_hours` | `24` | Age after which a handoff is flagged stale |
-| `SESSION_HANDOFF_HISTORY_KEEP` | `history_keep` | `20` | Timestamped history files to retain |
-
-Example `.session-handoff.json`:
-
-```json
-{
-  "local_only": true,
-  "stale_hours": 48,
-  "max_turns": 60
-}
-```
-
 ## Usage
 
 - **Automatic:** Just work normally. When context fills up, the handoff appears at
