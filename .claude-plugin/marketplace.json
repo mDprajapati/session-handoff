@@ -1,0 +1,24 @@
+{
+  "name": "session-handoff",
+  "owner": {
+    "name": "Malav Prajapati"
+  },
+  "metadata": {
+    "description": "Marketplace for the Session Handoff plugin — automatic session handoffs for Claude Code."
+  },
+  "plugins": [
+    {
+      "name": "session-handoff",
+      "source": "./",
+      "description": "Automatically generates a session handoff when context nears its limit, then auto-loads it in the next session so any team can resume work seamlessly. Git-safe, cross-platform, with secret redaction and a local-only privacy mode.",
+      "keywords": [
+        "handoff",
+        "context",
+        "session",
+        "memory",
+        "continuity",
+        "precompact"
+      ]
+    }
+  ]
+}

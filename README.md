@@ -88,63 +88,70 @@ flowchart TD
     handoff.log                # rotating debug log
 ```
 
-## How to Use in Claude Code (CLI / Terminal)
+## Where It Works
 
-1. **Install the plugin** by cloning it into your Claude Code plugins folder:
+This plugin runs on Claude Code's `PreCompact` and `SessionStart` hooks, so it works
+**only inside Claude Code** — not in every product that happens to use a Claude
+account.
 
-   ```bash
-   git clone https://github.com/mDprajapati/session-handoff.git \
-     ~/.claude/plugins/session-handoff
-   ```
+| Surface | Works? | Notes |
+|---------|:------:|-------|
+| Claude Code **CLI / terminal** | ✅ | Native |
+| Claude Code **Desktop app** | ✅ | Same Claude Code engine |
+| **VS Code** — *Claude Code extension* | ✅ | Bundles Claude Code |
+| **JetBrains** — Claude Code plugin | ✅ | Uses the CLI |
+| **claude.ai (web)** | ❌ | Cloud sandbox; does not run local hooks/plugins |
+| **Cursor** (even with a Claude account) | ❌ | Separate product, not Claude Code |
 
-   On Windows (PowerShell), the target is `$env:USERPROFILE\.claude\plugins\session-handoff`.
+> Plugin installs are **local to each Claude Code installation** — they are not synced
+> across devices by your Claude account. Each teammate installs once (or uses the
+> project auto-install below).
 
-2. **Restart Claude Code** so it loads the new hooks and skill:
+## Install
 
-   ```bash
-   claude
-   ```
+The commands below work the same in any supported Claude Code surface (CLI, Desktop,
+VS Code, or JetBrains).
 
-3. **Verify it's active** — run the `/plugin` command inside Claude Code and confirm
-   `session-handoff` appears in the list of installed plugins.
+### Option A — Marketplace install (per person)
 
-4. **Use it:**
-   - *Automatic* — just work normally. When context nears its limit, the `PreCompact`
-     hook writes `HANDOFF.md` to your project folder, and the `SessionStart` hook loads
-     it back the next time you open Claude Code in that directory.
-   - *On demand* — type the `/session-handoff` skill, or ask Claude to
-     "create a handoff" / "save my progress" at any time.
+Run these two commands inside Claude Code:
 
-## How to Use in the Claude Code Desktop App
+```text
+/plugin marketplace add mDprajapati/session-handoff
+/plugin install session-handoff@session-handoff
+```
 
-The desktop app (macOS / Windows) shares the same plugin system as the CLI, so the
-plugin works identically once installed.
+Then verify with `/plugin` — `session-handoff` should appear in the installed list.
 
-1. **Install the plugin** using either method:
-   - *Via the app* — open the command bar and run `/plugin`, then add and install the
-     plugin from its repository.
-   - *Manually* — clone the repo into the plugins folder (same path as the CLI):
+### Option B — Team auto-install (zero commands)
 
-     ```bash
-     git clone https://github.com/mDprajapati/session-handoff.git \
-       ~/.claude/plugins/session-handoff
-     ```
+Commit a `.claude/settings.json` into the repo your team works in (this plugin repo
+already ships one as a template):
 
-     On Windows: `%USERPROFILE%\.claude\plugins\session-handoff`.
+```json
+{
+  "extraKnownMarketplaces": {
+    "session-handoff": {
+      "source": { "source": "github", "repo": "mDprajapati/session-handoff" }
+    }
+  },
+  "enabledPlugins": {
+    "session-handoff@session-handoff": true
+  }
+}
+```
 
-2. **Set your Anthropic API key** (see [Setup](#setup) below) in the environment the
-   desktop app inherits, so the AI-generated summary works. Without it, the plugin
-   still falls back to capturing the last messages of the session.
+When a teammate opens that repo in Claude Code and trusts the folder, Claude Code
+prompts them to add the marketplace and enable the plugin automatically — no commands
+to remember.
 
-3. **Quit and reopen the desktop app** so the hooks and skill are loaded.
+### Using it
 
-4. **Use it** exactly as in the CLI — automatic handoff on compaction, or run the
-   `/session-handoff` skill from the in-app command bar to create one on demand.
-
-> **Note:** This plugin relies on Claude Code's `PreCompact` and `SessionStart` hooks.
-> It targets Claude Code (both the CLI and the desktop app). It is not designed for the
-> separate Claude chat apps (claude.ai / Claude for Desktop chat), which do not run
-> Claude Code hooks.
+- *Automatic* — just work normally. When context nears its limit, the `PreCompact`
+  hook writes the handoff to `.session-handoff/HANDOFF.md`, and the `SessionStart`
+  hook loads it back the next time you open Claude Code in that directory.
+- *On demand* — run the `/session-handoff` skill, or ask Claude to "create a handoff"
+  / "save my progress" at any time.
 
 ## Setup
 

@@ -32,6 +32,11 @@ Hardening pass to make the plugin safe for whole-team use.
   the skill so they cannot drift.
 - **Tests & CI.** A `pytest` suite and a GitHub Actions workflow that runs tests,
   byte-compiles the hooks, and validates the JSON manifests.
+- **Marketplace distribution.** A `.claude-plugin/marketplace.json` makes the repo
+  installable with `/plugin marketplace add mDprajapati/session-handoff` +
+  `/plugin install session-handoff@session-handoff`, and a checked-in
+  `.claude/settings.json` enables zero-command team auto-install. Replaces the
+  previous (unsupported) "clone into ~/.claude/plugins/" instructions.
 
 ### Changed
 - **Cross-platform loader.** `load_handoff.sh` (bash-only) is replaced by

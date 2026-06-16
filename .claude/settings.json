@@ -1,0 +1,13 @@
+{
+  "extraKnownMarketplaces": {
+    "session-handoff": {
+      "source": {
+        "source": "github",
+        "repo": "mDprajapati/session-handoff"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "session-handoff@session-handoff": true
+  }
+}
