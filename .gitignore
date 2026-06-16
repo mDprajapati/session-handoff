@@ -1,0 +1,9 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+
+# The plugin's own runtime output (in case it is ever run from this repo)
+.session-handoff/
