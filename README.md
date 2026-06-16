@@ -115,7 +115,7 @@ For the AI-generated summary, set your Anthropic API key in the environment:
 export ANTHROPIC_API_KEY="sk-ant-..."
 ```
 
-If no key is present, the plugin still works — it falls back to extracting the last
+**If no key is present, the plugin still works** — it falls back to extracting the last
 messages of the session directly (including the last concrete request as the resume
 line), so you never lose your handoff entirely.
 
