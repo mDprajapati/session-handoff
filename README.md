@@ -36,35 +36,34 @@ The plugin has two halves: it **saves** a handoff when context fills up, and
 **resumes** from it when you start the next session.
 
 ```mermaid
-flowchart TD
-    subgraph SAVE["1 - SAVING (when context fills up)"]
-        A[You work normally in Claude Code] --> B{Context nearly full?}
+flowchart LR
+
+    subgraph Save["Save Handoff"]
+        A[Work Session]
+        B{Context Full?}
+        C[Create Summary]
+        D[Save HANDOFF.md]
+
+        A --> B
         B -- No --> A
-        B -- "Yes - PreCompact hook fires" --> C[auto_handoff.py reads the transcript<br/>+ a trace of file edits & commands]
-        C --> D[Redact secrets<br/>keys, tokens, passwords]
-        D --> E{Local-only mode<br/>or no API key?}
-        E -- "No" --> F[Summarize with Claude API]
-        E -- "Yes / API fails" --> G[Build summary locally]
-        F --> H[Write the handoff]
-        G --> H
-        H --> I[".session-handoff/HANDOFF.md<br/>(+ timestamped history)"]
-        H --> J[Add .session-handoff/ to .gitignore<br/>so it is never committed]
-        H --> K[Log result to handoff.log]
+        B -- Yes --> C --> D
     end
 
-    I -. "next time you open Claude Code here" .-> L
+    D -. Resume Later .-> E
 
-    subgraph LOAD["2 - RESUMING (start of the next session)"]
-        L[New session starts] --> M[load_handoff.py runs<br/>SessionStart hook]
-        M --> N{Handoff file exists?}
-        N -- No --> O[Start normally]
-        N -- Yes --> P{Older than 24h?}
-        P -- "Yes" --> Q[Inject it + flag POSSIBLY STALE]
-        P -- "No" --> R[Inject it into context]
-        Q --> S[Claude resumes from the Resume Prompt]
-        R --> S
+    subgraph Resume["Resume Session"]
+        E[New Session]
+        F{Handoff Exists?}
+        G[Start Normally]
+        H[Load Handoff]
+        I[Continue Work]
+
+        E --> F
+        F -- No --> G
+        F -- Yes --> H --> I
     end
 ```
+
 
 > GitHub renders this diagram automatically. If you are viewing the raw Markdown,
 > paste the block into the [Mermaid Live Editor](https://mermaid.live) to see it.
