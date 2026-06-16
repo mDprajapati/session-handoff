@@ -68,25 +68,6 @@ flowchart LR
 > GitHub renders this diagram automatically. If you are viewing the raw Markdown,
 > paste the block into the [Mermaid Live Editor](https://mermaid.live) to see it.
 
-## Components
-
-| Component | Purpose |
-|-----------|---------|
-| `PreCompact` hook (`auto_handoff.py`) | Generates the handoff when context nears the limit |
-| `SessionStart` hook (`load_handoff.py`) | Loads the handoff into the next session, with a staleness check |
-| `handoff_lib.py` | Shared config, section schema, secret redaction, and logging (single source of truth) |
-| `session-handoff` skill | Guides handoff creation, what-to-preserve rules, and resume behavior |
-
-## What Gets Written (and where)
-
-```
-<your project>/
-  .session-handoff/            # git-ignored automatically
-    HANDOFF.md                 # the latest handoff (loaded on next session)
-    history/HANDOFF-<stamp>.md  # immutable, timestamped history
-    handoff.log                # rotating debug log
-```
-
 ## How to Use in Claude Code (CLI / Terminal)
 
 1. **Install the plugin** by cloning it into your Claude Code plugins folder:
