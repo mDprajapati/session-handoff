@@ -8,7 +8,7 @@ description: >
   kind of work — sales, marketing, SEO, accounting, development, research, legal,
   HR, support, content, or planning.
 metadata:
-  version: "0.1.0"
+  version: "0.2.0"
 ---
 
 # Session Handoff
@@ -38,10 +38,11 @@ next session needs to continue without re-explaining anything:
 - The single most important next action to take.
 - Any blockers, open questions, or risks that were flagged.
 
-## Writing a HANDOFF.md Manually
+## Writing a Handoff Manually
 
-If asked to create a handoff (rather than waiting for the automatic hook), write a
-`HANDOFF.md` in the project directory using exactly these sections:
+If asked to create a handoff (rather than waiting for the automatic hook), write the
+file to `.session-handoff/HANDOFF.md` in the project directory (the git-ignored
+location the loader reads). Use exactly these sections:
 
 1. **Work Type** — one line auto-detecting the kind of work (e.g. "SEO - On-page
    audit for client website").
@@ -49,20 +50,28 @@ If asked to create a handoff (rather than waiting for the automatic hook), write
 3. **Current Status** — what is in-progress right now; the last action taken.
 4. **Pending Items** — exact remaining tasks, in priority order.
 5. **Important Context** — names, numbers, deadlines, decisions, constraints, links.
-6. **Watch Out For** — blockers, risks, open questions.
-7. **Resume Prompt** — one specific sentence the user can paste into a new session
+6. **Activity Trace** — for technical work, a compact list of concrete actions
+   (files edited, commands run, tests and their outcome). Omit if not applicable.
+7. **Watch Out For** — blockers, risks, open questions.
+8. **Resume Prompt** — one specific sentence the user can paste into a new session
    to resume immediately. Never vague: always state WHAT work, WHERE it was left,
    and WHAT comes next.
 
-## Resuming From a HANDOFF.md
+> The canonical section schema lives in `hooks/scripts/handoff_lib.py` (`SECTIONS`)
+> so the automatic hook and this skill stay in sync. If you change the sections,
+> change them there too.
 
-At the start of a session, the `SessionStart` hook prints any existing `HANDOFF.md`.
-When that content is present:
+## Resuming From a Handoff
+
+At the start of a session, the `SessionStart` hook prints any existing
+`.session-handoff/HANDOFF.md`. When that content is present:
 
 - Treat the **Resume Prompt** and **Pending Items** as the immediate to-do list.
+- If the loader flagged the handoff as **POSSIBLY STALE**, confirm with the user
+  that it is still relevant before resuming — it may belong to a different task.
 - Confirm the resumed task back to the user in one line before continuing.
-- Once the handed-off work is complete, remind the user they can delete `HANDOFF.md`
-  to keep the project clean.
+- Once the handed-off work is complete, remind the user they can delete
+  `.session-handoff/HANDOFF.md` so it does not load again next session.
 
 ## Style Rules
 

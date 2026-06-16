@@ -1,22 +1,32 @@
 # Session Handoff
 
 Never lose your place when a Claude Code session hits its context limit. This
-plugin automatically captures everything you were working on into a `HANDOFF.md`
-file the moment context fills up, then automatically loads that file back into your
+plugin automatically captures everything you were working on into a session
+handoff the moment context fills up, then automatically loads it back into your
 next session so you can resume instantly — no re-explaining from scratch.
 
 It is **fully generic**: it auto-detects the kind of work from the conversation, so
 it works the same for development, sales, marketing, SEO, accounting, HR, legal,
 research, support, content, or planning teams.
 
+> **Built for teams.** The handoff is written to a **git-ignored**
+> `.session-handoff/` directory (never committed), the loader is **cross-platform**
+> (pure Python — no bash dependency), secrets are **redacted** before anything is
+> sent to the API or written to disk, and a **local-only** mode keeps the
+> transcript on your machine. Every run is logged for debuggability.
+
 ## What It Does
 
-1. **At ~90% context** — the `PreCompact` hook fires, reads the session transcript,
-   and uses the Anthropic API to write a structured `HANDOFF.md` in your project
-   folder (work type, what's done, current status, pending items, key context,
-   blockers, and a ready-to-paste resume prompt).
-2. **At the start of a new session** — the `SessionStart` hook detects `HANDOFF.md`
-   and injects it back into context, so Claude already knows where to pick up.
+1. **When context nears the limit** — the `PreCompact` hook fires, reads the
+   session transcript (including a compact trace of file edits and commands), and
+   uses the Anthropic API to write a structured handoff to
+   `.session-handoff/HANDOFF.md` (work type, what's done, current status, pending
+   items, key context, activity trace, blockers, and a ready-to-paste resume
+   prompt). A timestamped copy is also kept under `.session-handoff/history/`.
+2. **At the start of a new session** — the `SessionStart` hook detects the handoff
+   and injects it back into context. If it is older than the staleness threshold
+   (24h by default), it is flagged as *possibly stale* rather than presented as the
+   live task.
 3. **On demand** — the bundled skill lets you say "save my progress" or "create a
    handoff" any time, without waiting for the limit.
 
@@ -24,9 +34,20 @@ research, support, content, or planning teams.
 
 | Component | Purpose |
 |-----------|---------|
-| `PreCompact` hook (`auto_handoff.py`) | Generates `HANDOFF.md` when context nears the limit |
-| `SessionStart` hook (`load_handoff.sh`) | Loads `HANDOFF.md` into the next session |
+| `PreCompact` hook (`auto_handoff.py`) | Generates the handoff when context nears the limit |
+| `SessionStart` hook (`load_handoff.py`) | Loads the handoff into the next session, with a staleness check |
+| `handoff_lib.py` | Shared config, section schema, secret redaction, and logging (single source of truth) |
 | `session-handoff` skill | Guides handoff creation, what-to-preserve rules, and resume behavior |
+
+## What Gets Written (and where)
+
+```
+<your project>/
+  .session-handoff/            # git-ignored automatically
+    HANDOFF.md                 # the latest handoff (loaded on next session)
+    history/HANDOFF-<stamp>.md  # immutable, timestamped history
+    handoff.log                # rotating debug log
+```
 
 ## How to Use in Claude Code (CLI / Terminal)
 
@@ -95,22 +116,82 @@ export ANTHROPIC_API_KEY="sk-ant-..."
 ```
 
 If no key is present, the plugin still works — it falls back to extracting the last
-messages of the session directly, so you never lose your handoff entirely.
+messages of the session directly (including the last concrete request as the resume
+line), so you never lose your handoff entirely.
 
 No other configuration is required. After installing, restart Claude Code so the
 hooks activate.
 
+### Privacy & compliance
+
+The transcript can contain client data, secrets, or PII. By default the plugin
+**redacts obvious secrets** (API keys, tokens, passwords, private keys, bearer
+tokens) before any text is sent to the API or written to disk. For sensitive repos
+you can also keep everything on the machine:
+
+```bash
+export SESSION_HANDOFF_LOCAL_ONLY=1   # never call the API; build the handoff locally
+```
+
+Redaction is a best-effort safety net, not a guarantee — review handoffs before
+sharing them.
+
+### Configuration
+
+Everything has sane defaults. Override via environment variables, or commit a
+`.session-handoff.json` file in the project root for per-repo policy (env vars win
+over the file):
+
+| Env var | `.session-handoff.json` key | Default | Purpose |
+|---------|------------------------------|---------|---------|
+| `SESSION_HANDOFF_LOCAL_ONLY` | `local_only` | `false` | Skip the API entirely (privacy) |
+| `SESSION_HANDOFF_REDACT` | `redact_secrets` | `true` | Redact secrets before send/write |
+| `SESSION_HANDOFF_MODEL` | `model` | `claude-haiku-4-5-20251001` | Summarizer model id |
+| `SESSION_HANDOFF_MAX_TURNS` | `max_turns` | `40` | Recent turns fed to the summarizer |
+| `SESSION_HANDOFF_MAX_TOKENS` | `max_tokens` | `1200` | Summary output token budget |
+| `SESSION_HANDOFF_API_TIMEOUT` | `api_timeout` | `20` | API timeout (seconds) before local fallback |
+| `SESSION_HANDOFF_API_ATTEMPTS` | `api_attempts` | `2` | API attempts before falling back |
+| `SESSION_HANDOFF_STALE_HOURS` | `stale_hours` | `24` | Age after which a handoff is flagged stale |
+| `SESSION_HANDOFF_HISTORY_KEEP` | `history_keep` | `20` | Timestamped history files to retain |
+
+Example `.session-handoff.json`:
+
+```json
+{
+  "local_only": true,
+  "stale_hours": 48,
+  "max_turns": 60
+}
+```
+
 ## Usage
 
-- **Automatic:** Just work normally. When context fills up, `HANDOFF.md` appears in
-  your project folder and is loaded for you next time.
+- **Automatic:** Just work normally. When context fills up, the handoff appears at
+  `.session-handoff/HANDOFF.md` and is loaded for you next time.
 - **Manual:** Ask Claude to "create a handoff" or "save my progress" at any point.
-- **Test it:** Run `/compact` inside Claude Code, then check your project folder for
-  `HANDOFF.md`.
+- **Test it:** Run `/compact` inside Claude Code, then check
+  `.session-handoff/HANDOFF.md`.
 
 ## Notes
 
-- `HANDOFF.md` is written to the current project directory (`CLAUDE_PROJECT_DIR`).
-- Delete `HANDOFF.md` after you've resumed to keep the project clean.
+- The handoff is written under `.session-handoff/` in the current project directory
+  (`CLAUDE_PROJECT_DIR`), which is added to `.gitignore` automatically so it is
+  never committed.
+- Delete `.session-handoff/HANDOFF.md` after you've resumed, or it will load again
+  next session. History under `.session-handoff/history/` is pruned automatically.
+- Failures are recorded in `.session-handoff/handoff.log` — check there first if a
+  handoff didn't generate.
 - The exact trigger point is whenever Claude Code decides to compact (typically
   80–95% context); `PreCompact` is the closest built-in hook to a strict "90%".
+
+## Development
+
+Requires Python 3.7+ (standard library only — no dependencies).
+
+```bash
+pip install pytest        # only needed to run the test suite
+pytest                    # run the tests in tests/
+```
+
+CI (GitHub Actions, `.github/workflows/ci.yml`) runs the tests, byte-compiles the
+hooks, and validates the JSON manifests on every push and pull request.

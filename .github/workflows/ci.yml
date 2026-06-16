@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        # Cross-platform: the plugin promises Windows + Unix support.
+        os: [ubuntu-latest, windows-latest]
+        python-version: ["3.8", "3.12"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install test dependencies
+        run: python -m pip install --upgrade pip pytest
+
+      - name: Byte-compile the hook scripts (syntax check)
+        run: python -m compileall -q hooks/scripts
+
+      - name: Run tests
+        run: python -m pytest -q
+
+      - name: Validate JSON manifests
+        shell: python
+        run: |
+          import json, sys
+          for path in (".claude-plugin/plugin.json", "hooks/hooks.json"):
+              with open(path, encoding="utf-8") as f:
+                  json.load(f)
+              print(f"OK: {path}")
