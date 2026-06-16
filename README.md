@@ -28,6 +28,64 @@ research, support, content, or planning teams.
 | `SessionStart` hook (`load_handoff.sh`) | Loads `HANDOFF.md` into the next session |
 | `session-handoff` skill | Guides handoff creation, what-to-preserve rules, and resume behavior |
 
+## How to Use in Claude Code (CLI / Terminal)
+
+1. **Install the plugin** by cloning it into your Claude Code plugins folder:
+
+   ```bash
+   git clone https://github.com/mDprajapati/session-handoff.git \
+     ~/.claude/plugins/session-handoff
+   ```
+
+   On Windows (PowerShell), the target is `$env:USERPROFILE\.claude\plugins\session-handoff`.
+
+2. **Restart Claude Code** so it loads the new hooks and skill:
+
+   ```bash
+   claude
+   ```
+
+3. **Verify it's active** — run the `/plugin` command inside Claude Code and confirm
+   `session-handoff` appears in the list of installed plugins.
+
+4. **Use it:**
+   - *Automatic* — just work normally. When context nears its limit, the `PreCompact`
+     hook writes `HANDOFF.md` to your project folder, and the `SessionStart` hook loads
+     it back the next time you open Claude Code in that directory.
+   - *On demand* — type the `/session-handoff` skill, or ask Claude to
+     "create a handoff" / "save my progress" at any time.
+
+## How to Use in the Claude Code Desktop App
+
+The desktop app (macOS / Windows) shares the same plugin system as the CLI, so the
+plugin works identically once installed.
+
+1. **Install the plugin** using either method:
+   - *Via the app* — open the command bar and run `/plugin`, then add and install the
+     plugin from its repository.
+   - *Manually* — clone the repo into the plugins folder (same path as the CLI):
+
+     ```bash
+     git clone https://github.com/mDprajapati/session-handoff.git \
+       ~/.claude/plugins/session-handoff
+     ```
+
+     On Windows: `%USERPROFILE%\.claude\plugins\session-handoff`.
+
+2. **Set your Anthropic API key** (see [Setup](#setup) below) in the environment the
+   desktop app inherits, so the AI-generated summary works. Without it, the plugin
+   still falls back to capturing the last messages of the session.
+
+3. **Quit and reopen the desktop app** so the hooks and skill are loaded.
+
+4. **Use it** exactly as in the CLI — automatic handoff on compaction, or run the
+   `/session-handoff` skill from the in-app command bar to create one on demand.
+
+> **Note:** This plugin relies on Claude Code's `PreCompact` and `SessionStart` hooks.
+> It targets Claude Code (both the CLI and the desktop app). It is not designed for the
+> separate Claude chat apps (claude.ai / Claude for Desktop chat), which do not run
+> Claude Code hooks.
+
 ## Setup
 
 For the AI-generated summary, set your Anthropic API key in the environment:
