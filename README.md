@@ -36,57 +36,37 @@ The plugin has two halves: it **saves** a handoff when context fills up, and
 **resumes** from it when you start the next session.
 
 ```mermaid
-flowchart TD
-    subgraph SAVE["1 - SAVING (when context fills up)"]
-        A[You work normally in Claude Code] --> B{Context nearly full?}
+flowchart LR
+
+    subgraph Save["Save Handoff"]
+        A[Work Session]
+        B{Context Full?}
+        C[Create Summary]
+        D[Save HANDOFF.md]
+
+        A --> B
         B -- No --> A
-        B -- "Yes - PreCompact hook fires" --> C[auto_handoff.py reads the transcript<br/>+ a trace of file edits & commands]
-        C --> D[Redact secrets<br/>keys, tokens, passwords]
-        D --> E{Local-only mode<br/>or no API key?}
-        E -- "No" --> F[Summarize with Claude API]
-        E -- "Yes / API fails" --> G[Build summary locally]
-        F --> H[Write the handoff]
-        G --> H
-        H --> I[".session-handoff/HANDOFF.md<br/>(+ timestamped history)"]
-        H --> J[Add .session-handoff/ to .gitignore<br/>so it is never committed]
-        H --> K[Log result to handoff.log]
+        B -- Yes --> C --> D
     end
 
-    I -. "next time you open Claude Code here" .-> L
+    D -. Resume Later .-> E
 
-    subgraph LOAD["2 - RESUMING (start of the next session)"]
-        L[New session starts] --> M[load_handoff.py runs<br/>SessionStart hook]
-        M --> N{Handoff file exists?}
-        N -- No --> O[Start normally]
-        N -- Yes --> P{Older than 24h?}
-        P -- "Yes" --> Q[Inject it + flag POSSIBLY STALE]
-        P -- "No" --> R[Inject it into context]
-        Q --> S[Claude resumes from the Resume Prompt]
-        R --> S
+    subgraph Resume["Resume Session"]
+        E[New Session]
+        F{Handoff Exists?}
+        G[Start Normally]
+        H[Load Handoff]
+        I[Continue Work]
+
+        E --> F
+        F -- No --> G
+        F -- Yes --> H --> I
     end
 ```
+
 
 > GitHub renders this diagram automatically. If you are viewing the raw Markdown,
 > paste the block into the [Mermaid Live Editor](https://mermaid.live) to see it.
-
-## Components
-
-| Component | Purpose |
-|-----------|---------|
-| `PreCompact` hook (`auto_handoff.py`) | Generates the handoff when context nears the limit |
-| `SessionStart` hook (`load_handoff.py`) | Loads the handoff into the next session, with a staleness check |
-| `handoff_lib.py` | Shared config, section schema, secret redaction, and logging (single source of truth) |
-| `session-handoff` skill | Guides handoff creation, what-to-preserve rules, and resume behavior |
-
-## What Gets Written (and where)
-
-```
-<your project>/
-  .session-handoff/            # git-ignored automatically
-    HANDOFF.md                 # the latest handoff (loaded on next session)
-    history/HANDOFF-<stamp>.md  # immutable, timestamped history
-    handoff.log                # rotating debug log
-```
 
 ## Where It Works
 
@@ -145,14 +125,6 @@ When a teammate opens that repo in Claude Code and trusts the folder, Claude Cod
 prompts them to add the marketplace and enable the plugin automatically — no commands
 to remember.
 
-### Using it
-
-- *Automatic* — just work normally. When context nears its limit, the `PreCompact`
-  hook writes the handoff to `.session-handoff/HANDOFF.md`, and the `SessionStart`
-  hook loads it back the next time you open Claude Code in that directory.
-- *On demand* — run the `/session-handoff` skill, or ask Claude to "create a handoff"
-  / "save my progress" at any time.
-
 ## Setup
 
 For the AI-generated summary, set your Anthropic API key in the environment:
@@ -167,48 +139,6 @@ line), so you never lose your handoff entirely.
 
 No other configuration is required. After installing, restart Claude Code so the
 hooks activate.
-
-### Privacy & compliance
-
-The transcript can contain client data, secrets, or PII. By default the plugin
-**redacts obvious secrets** (API keys, tokens, passwords, private keys, bearer
-tokens) before any text is sent to the API or written to disk. For sensitive repos
-you can also keep everything on the machine:
-
-```bash
-export SESSION_HANDOFF_LOCAL_ONLY=1   # never call the API; build the handoff locally
-```
-
-Redaction is a best-effort safety net, not a guarantee — review handoffs before
-sharing them.
-
-### Configuration
-
-Everything has sane defaults. Override via environment variables, or commit a
-`.session-handoff.json` file in the project root for per-repo policy (env vars win
-over the file):
-
-| Env var | `.session-handoff.json` key | Default | Purpose |
-|---------|------------------------------|---------|---------|
-| `SESSION_HANDOFF_LOCAL_ONLY` | `local_only` | `false` | Skip the API entirely (privacy) |
-| `SESSION_HANDOFF_REDACT` | `redact_secrets` | `true` | Redact secrets before send/write |
-| `SESSION_HANDOFF_MODEL` | `model` | `claude-haiku-4-5-20251001` | Summarizer model id |
-| `SESSION_HANDOFF_MAX_TURNS` | `max_turns` | `40` | Recent turns fed to the summarizer |
-| `SESSION_HANDOFF_MAX_TOKENS` | `max_tokens` | `1200` | Summary output token budget |
-| `SESSION_HANDOFF_API_TIMEOUT` | `api_timeout` | `20` | API timeout (seconds) before local fallback |
-| `SESSION_HANDOFF_API_ATTEMPTS` | `api_attempts` | `2` | API attempts before falling back |
-| `SESSION_HANDOFF_STALE_HOURS` | `stale_hours` | `24` | Age after which a handoff is flagged stale |
-| `SESSION_HANDOFF_HISTORY_KEEP` | `history_keep` | `20` | Timestamped history files to retain |
-
-Example `.session-handoff.json`:
-
-```json
-{
-  "local_only": true,
-  "stale_hours": 48,
-  "max_turns": 60
-}
-```
 
 ## Usage
 
