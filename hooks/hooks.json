@@ -1,0 +1,26 @@
+{
+  "PreCompact": [
+    {
+      "matcher": "",
+      "hooks": [
+        {
+          "type": "command",
+          "command": "python3 ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/auto_handoff.py",
+          "timeout": 45
+        }
+      ]
+    }
+  ],
+  "SessionStart": [
+    {
+      "matcher": "",
+      "hooks": [
+        {
+          "type": "command",
+          "command": "bash ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/load_handoff.sh",
+          "timeout": 15
+        }
+      ]
+    }
+  ]
+}

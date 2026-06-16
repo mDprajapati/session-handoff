@@ -1,0 +1,16 @@
+{
+  "name": "session-handoff",
+  "version": "0.1.0",
+  "description": "Automatically generates a HANDOFF.md when context nears its limit, then auto-loads it in the next session so any team can resume work seamlessly.",
+  "author": {
+    "name": "Session Handoff"
+  },
+  "keywords": [
+    "handoff",
+    "context",
+    "session",
+    "memory",
+    "continuity",
+    "precompact"
+  ]
+}
