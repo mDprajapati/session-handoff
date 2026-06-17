@@ -8,7 +8,7 @@ description: >
   kind of work — sales, marketing, SEO, accounting, development, research, legal,
   HR, support, content, or planning.
 metadata:
-  version: "0.2.0"
+  version: "0.2.1"
 ---
 
 # Session Handoff

@@ -3,6 +3,21 @@
 All notable changes to the session-handoff plugin are documented here.
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.2.1] — 2026-06-17
+
+Documentation update — no behavior changes.
+
+### Added
+- **Commands & Phrases Cheat Sheet** in the README: a single table of everything a
+  teammate can type (the `save my progress` / `what was I working on?` phrases and the
+  `/compact` and `/plugin …` commands), making clear there are no custom slash commands
+  to memorize.
+- **Real-World Use Cases** in the README: seven role-based scenarios (developer, sales,
+  marketing/SEO, accounting, HR, research/legal, and an async team relay) showing how
+  co-workers across teams use the same two habits to save and resume work. The relay
+  case notes that `.session-handoff/` is git-ignored, so sharing happens via a shared
+  folder or by pasting the Resume Prompt.
+
 ## [0.2.0] — 2026-06-16
 
 Hardening pass to make the plugin safe for whole-team use.

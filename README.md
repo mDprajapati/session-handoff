@@ -148,6 +148,92 @@ hooks activate.
 - **Test it:** Run `/compact` inside Claude Code, then check
   `.session-handoff/HANDOFF.md`.
 
+## Commands & Phrases Cheat Sheet
+
+Everything you can type. There are no custom slash commands to memorize — saving and
+resuming are driven by plain English, so it works the same for any kind of work.
+
+| You type… | When | What happens |
+|-----------|------|--------------|
+| *(nothing — just keep working)* | Any session | Handoff **auto-saves** when context fills up and **auto-loads** at the start of your next session |
+| `save my progress` *(or)* `create a handoff` | Any time mid-session | Writes `.session-handoff/HANDOFF.md` right now, without waiting for the limit |
+| `summarize what we did so we can continue later` | Wrapping up for the day | Same as above — a manual handoff |
+| `what was I working on?` | Start of a new session | Claude reads the loaded handoff and tells you your open task + next step |
+| `/compact` | A session that has real history | Manually triggers compaction, which fires the save hook (the easiest way to test it) |
+| `/plugin marketplace add mDprajapati/session-handoff` | One-time setup | Adds the marketplace |
+| `/plugin install session-handoff@session-handoff` | One-time setup | Installs the plugin |
+
+> Tip: after you've resumed and finished the handed-off work, delete
+> `.session-handoff/HANDOFF.md` so it doesn't load again next session.
+
+## Real-World Use Cases
+
+The plugin auto-detects the kind of work from your conversation, so the same two
+habits — *"save my progress"* and *"what was I working on?"* — cover every team.
+
+### 1. Developer — a long debugging session
+
+You're three hours into tracing a flaky test and Claude warns context is filling up.
+You don't stop to write notes — the `PreCompact` hook captures the files you edited,
+commands you ran, and the root cause you'd narrowed down. Tomorrow you open the repo
+and type **`what was I working on?`**; Claude replays the failing test, the fix you
+were about to try, and the exact next step.
+
+```text
+what was I working on?
+```
+
+### 2. Sales — a multi-touch deal across several sessions
+
+You're drafting a proposal for a prospect and gathering pricing approvals over two
+days. Before logging off you type **`save my progress`**. The handoff records the
+client name, deal size, the discount you're waiting to get signed off, and the next
+action ("send revised quote once Finance approves 12%"). Next session you pick up
+without re-reading the whole email thread.
+
+```text
+save my progress
+```
+
+### 3. Marketing / SEO — an on-page audit in progress
+
+Halfway through auditing 40 URLs you need to leave for a meeting. You ask Claude to
+**`create a handoff`**; it logs which URLs are done, the title-tag pattern you
+decided on, and the 18 pages still pending. When you return, **`what was I working
+on?`** hands you the remaining list in priority order.
+
+### 4. Accounting / Finance — month-end close
+
+You're reconciling accounts and the session is getting long. The handoff preserves
+the ledgers already balanced, the two variances still under investigation, and the
+deadline. A teammate in another timezone can open the same project and resume from
+your handoff — no verbal status update needed.
+
+### 5. HR / Recruiting — a hiring round
+
+You're comparing candidates and drafting feedback. **`save my progress`** captures
+who's been screened, the scorecard decisions made and *why*, and who's next to
+interview. The "Important Context" section keeps names and decisions straight so the
+next session doesn't mix candidates up.
+
+### 6. Research / Legal — a multi-source review
+
+You're synthesizing findings across documents and the context limit is near. The
+handoff keeps the sources already reviewed, the argument you're building, and the
+open questions still to verify — so a deep review survives across sessions instead of
+collapsing into a vague summary.
+
+### 7. Async team relay — hand work to a teammate
+
+Because the handoff is a plain `.session-handoff/HANDOFF.md` file, one person can do
+the morning's work, then a colleague opens the **same project** in Claude Code and
+the `SessionStart` hook loads the handoff for them automatically. They type
+**`what was I working on?`** and continue where the first person stopped.
+
+> `.session-handoff/` is git-ignored, so it won't sync through version control. For a
+> true async relay, share the project folder (shared drive, synced directory) or paste
+> the **Resume Prompt** from the handoff into the teammate's session.
+
 ## Notes
 
 - The handoff is written under `.session-handoff/` in the current project directory
